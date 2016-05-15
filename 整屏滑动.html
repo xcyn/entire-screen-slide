@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body, section, div {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        section {
+            position: absolute;
+            top: 0;
+        }
+
+        div:nth-of-type(1) {
+            background: pink;
+        }
+
+        div:nth-of-type(2) {
+            background: green;
+        }
+
+        div:nth-of-type(3) {
+            background: red;
+        }
+
+        div:nth-of-type(4) {
+            background: yellow;
+        }
+
+        div:nth-of-type(5) {
+            background: #255dff;
+        }
+        div:nth-of-type(6) {
+            background: #98ff79;
+        }
+        div:nth-of-type(4) {
+            background: #ff1932;
+        }
+        /*li部分开始*/
+        ul {
+            width: 50px;
+            border: 1px solid black;
+            list-style: none;
+            position: fixed;
+            top: 0px;
+            right: 0;
+        }
+
+        li {
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border: 1px solid red;
+            text-align: center;
+        }
+
+        /*li部分结束*/
+    </style>
+</head>
+<body>
+<div class="split">
+    <section id="section">
+        <div>1</div>
+        <div>2</div>
+        <div>3</div>
+        <div>4</div>
+        <div>5</div>
+        <div>6</div>
+        <div>7</div>
+    </section>
+    <ul>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+    </ul>
+</div>
+</body>
+</html>
+<script>
+    //封装实现滚屏判断向上还是向下
+    function myMouseWheel(event) {
+        var delta = 0;
+        var event = event || window.event;
+        if (event.wheelDelta) {
+            delta = event.wheelDelta / 120;
+            if (window.opera) delta = -delta;
+        } else if (event.detail) {
+            delta = -event.detail / 3;
+        }
+        return delta;
+    }
+    if (window.addEventListener) {
+        //兼容火狐
+        window.addEventListener('DOMMouseScroll', function (e) {
+            var sroll = myMouseWheel(e);
+            console.log(sroll)
+        }, false);
+    }
+
+    //    获取整屏幕容器
+    var section = document.getElementById('section');
+    //     获取父容器里所有的子容器
+    var divs = document.getElementsByTagName('div');
+    //      获取ul
+    var ul = document.getElementsByTagName('ul')[0];
+    var list = ul.children;
+    var timer = null;
+    var count = 0;
+    var flag = false;
+    var timeC = 0;
+    var lastTime = +new Date();
+    //    实现鼠标滚轮滑动效果
+    window.onmousewheel = function haha(e) {
+        var nowTime = +new Date();
+        timeC = nowTime - lastTime;
+        lastTime = +new Date();
+        if (timeC > 500) {
+            screenChange(e);
+        }
+    };
+    // 实现点击li实现对应的屏幕滚到某个屏幕
+    for (var i = 0; i < list.length; i++) {
+        list[i].index = i;
+        list[i].onclick = function () {
+            console.log(this.index)
+            count = this.index;
+            animate(section, -divs[0].offsetHeight * count)
+        }
+    }
+    //点击移动实现对应的屏幕滚动
+    document.onmousedown = function (e) {
+        var event = e || window.event;
+        var startY = e.clientY;
+        console.log(startY)
+        this.onmousemove = function (e) {
+            var event = e || window.event;
+            var moveY = e.clientY;
+            var DIf = moveY - startY;
+            console.log(DIf)
+            document.onmouseup = function () {
+                this.onmousemove = null;
+                if (DIf > 30) {
+                    if (count >= list.length - 1) {
+                        this.onmousemove = null;
+                        return false;
+                    }
+                    count = count + 1;
+                    animate(section, -divs[0].offsetHeight * count)
+                } else if (DIf < -30) {
+                    if (count <= 0) {
+                        this.onmousemove = null;
+                        return false;
+                    }
+                    count = count - 1;
+                    animate(section, -divs[0].offsetHeight * count)
+                }
+            }
+        }
+    }
+
+    function screenChange(e) {
+        var sroll = myMouseWheel(e);
+        if (sroll < 0) {//向下
+            console.log('向下开始滚')
+            if (count >= list.length - 1) {
+                return false;
+            }
+            count = count + 1;
+            animate(section, -divs[0].offsetHeight * count)
+        } else {//向上
+            if (count <= 0) {
+                return false;
+            }
+            count = count - 1;
+            animate(section, -divs[0].offsetHeight * count)
+        }
+    }
+
+
+    function animate(obj, target) {
+        clearInterval(obj.timer);
+        obj.timer = setInterval(function () {
+            var leader = obj.offsetTop;
+            var step = target > leader ? obj.offsetHeight * 0.1 : -obj.offsetHeight * 0.1;
+            if (Math.abs(target - leader) >= Math.abs(step)) {
+                obj.style.top = leader + step + 'px';
+            } else {
+                obj.style.top = target + 'px';
+                clearInterval(obj.timer);
+            }
+        }, 40)
+    }
+
+</script>
